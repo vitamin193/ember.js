@@ -66,8 +66,14 @@ const EmberRouter = EmberObject.extend(Evented, {
   rootURL: '/',
 
   _initRouterJs() {
-    let routerMicrolib = (this._routerMicrolib = new Router());
-    routerMicrolib.triggerEvent = triggerEvent.bind(this);
+    let routerMicrolib = (this._routerMicrolib = new Router({
+      getHandler: this._getHandlerFunction(),
+      getSerializer: this._getSerializerFunction(),
+      triggerEvent: (handlerInfos, ignoreFailure, args) => {
+        return triggerEvent.bind(this)(handlerInfos, ignoreFailure, args);
+      },
+    }));
+    // routerMicrolib.triggerEvent = triggerEvent.bind(this);
 
     routerMicrolib._triggerWillChangeContext = K;
     routerMicrolib._triggerWillLeave = K;
@@ -626,9 +632,6 @@ const EmberRouter = EmberObject.extend(Evented, {
   _setupRouter(location) {
     let lastURL;
     let routerMicrolib = this._routerMicrolib;
-
-    routerMicrolib.getHandler = this._getHandlerFunction();
-    routerMicrolib.getSerializer = this._getSerializerFunction();
 
     let doUpdateURL = () => {
       location.setURL(lastURL);

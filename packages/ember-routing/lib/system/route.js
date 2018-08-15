@@ -1923,11 +1923,11 @@ let Route = EmberObject.extend(ActionHandler, Evented, {
     let transition =
       this._router && this._router._routerMicrolib
         ? this._router._routerMicrolib.activeTransition
-        : null;
+        : undefined;
 
     // Only change the route name when there is an active transition.
     // Otherwise, use the passed in route name.
-    if (owner.routable && transition !== null) {
+    if (owner.routable && transition !== undefined) {
       name = getEngineRouteName(owner, _name);
     } else {
       name = _name;
@@ -1936,7 +1936,7 @@ let Route = EmberObject.extend(ActionHandler, Evented, {
     let route = owner.lookup(`route:${name}`);
     // If we are mid-transition, we want to try and look up
     // resolved parent contexts on the current transitionEvent.
-    if (transition !== null) {
+    if (transition !== undefined) {
       let modelLookupName = (route && route.routeName) || name;
       if (transition.resolvedModels.hasOwnProperty(modelLookupName)) {
         return transition.resolvedModels[modelLookupName];
