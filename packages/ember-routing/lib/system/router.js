@@ -66,6 +66,7 @@ const EmberRouter = EmberObject.extend(Evented, {
   rootURL: '/',
 
   _initRouterJs() {
+    this._setupLocation();
     let routerMicrolib = (this._routerMicrolib = new Router({
       getHandler: this._getHandlerFunction(),
       getSerializer: this._getSerializerFunction(),
@@ -188,7 +189,6 @@ const EmberRouter = EmberObject.extend(Evented, {
 
   setupRouter() {
     this._initRouterJs();
-    this._setupLocation();
 
     let location = get(this, 'location');
 
