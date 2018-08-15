@@ -66,28 +66,31 @@ const EmberRouter = EmberObject.extend(Evented, {
   rootURL: '/',
 
   _initRouterJs() {
-    this._setupLocation();
-
     let location = get(this, 'location');
-    // Allow the Location class to cancel the router setup while it refreshes
-    // the page
-    if (get(location, 'cancelRouterSetup')) {
-      return false;
-    }
-
     let lastURL;
+    let replaceURL;
 
-    let doUpdateURL = () => {
-      location.setURL(lastURL);
-      set(this, 'currentURL', lastURL);
-    };
+    if (location.replaceURL) {
+      let doReplaceURL = () => {
+        location.replaceURL(lastURL);
+        set(this, 'currentURL', lastURL);
+      };
+
+      replaceURL = path => {
+        lastURL = path;
+        once(doReplaceURL);
+      };
+    }
 
     let routerMicrolib = (this._routerMicrolib = new Router({
       getHandler: this._getHandlerFunction(),
       getSerializer: this._getSerializerFunction(),
       updateURL: path => {
         lastURL = path;
-        once(doUpdateURL);
+        once(() => {
+          location.setURL(lastURL);
+          set(this, 'currentURL', lastURL);
+        });
       },
       didTransition: infos => {
         this.didTransition(infos);
@@ -98,8 +101,8 @@ const EmberRouter = EmberObject.extend(Evented, {
       triggerEvent: (handlerInfos, ignoreFailure, args) => {
         return triggerEvent.bind(this)(handlerInfos, ignoreFailure, args);
       },
+      replaceURL,
     }));
-    // routerMicrolib.triggerEvent = triggerEvent.bind(this);
 
     routerMicrolib._triggerWillChangeContext = K;
     routerMicrolib._triggerWillLeave = K;
@@ -213,7 +216,7 @@ const EmberRouter = EmberObject.extend(Evented, {
   },
 
   setupRouter() {
-    this._initRouterJs();
+    this._setupLocation();
 
     let location = get(this, 'location');
 
@@ -223,7 +226,7 @@ const EmberRouter = EmberObject.extend(Evented, {
       return false;
     }
 
-    this._setupRouter(location);
+    this._initRouterJs();
 
     location.onUpdateURL(url => {
       this.handleURL(url);
@@ -652,23 +655,6 @@ const EmberRouter = EmberObject.extend(Evented, {
 
       return engineInfo.serializeMethod || defaultSerialize;
     };
-  },
-
-  _setupRouter(location) {
-    let lastURL;
-    let routerMicrolib = this._routerMicrolib;
-
-    if (location.replaceURL) {
-      let doReplaceURL = () => {
-        location.replaceURL(lastURL);
-        set(this, 'currentURL', lastURL);
-      };
-
-      routerMicrolib.replaceURL = path => {
-        lastURL = path;
-        once(doReplaceURL);
-      };
-    }
   },
 
   /**
