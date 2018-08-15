@@ -89,6 +89,12 @@ const EmberRouter = EmberObject.extend(Evented, {
         lastURL = path;
         once(doUpdateURL);
       },
+      didTransition: infos => {
+        this.didTransition(infos);
+      },
+      willTransition: (oldInfos, newInfos, transition) => {
+        this.willTransition(oldInfos, newInfos, transition);
+      },
       triggerEvent: (handlerInfos, ignoreFailure, args) => {
         return triggerEvent.bind(this)(handlerInfos, ignoreFailure, args);
       },
@@ -663,14 +669,6 @@ const EmberRouter = EmberObject.extend(Evented, {
         once(doReplaceURL);
       };
     }
-
-    routerMicrolib.didTransition = infos => {
-      this.didTransition(infos);
-    };
-
-    routerMicrolib.willTransition = (oldInfos, newInfos, transition) => {
-      this.willTransition(oldInfos, newInfos, transition);
-    };
   },
 
   /**
