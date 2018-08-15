@@ -67,9 +67,28 @@ const EmberRouter = EmberObject.extend(Evented, {
 
   _initRouterJs() {
     this._setupLocation();
+
+    let location = get(this, 'location');
+    // Allow the Location class to cancel the router setup while it refreshes
+    // the page
+    if (get(location, 'cancelRouterSetup')) {
+      return false;
+    }
+
+    let lastURL;
+
+    let doUpdateURL = () => {
+      location.setURL(lastURL);
+      set(this, 'currentURL', lastURL);
+    };
+
     let routerMicrolib = (this._routerMicrolib = new Router({
       getHandler: this._getHandlerFunction(),
       getSerializer: this._getSerializerFunction(),
+      updateURL: path => {
+        lastURL = path;
+        once(doUpdateURL);
+      },
       triggerEvent: (handlerInfos, ignoreFailure, args) => {
         return triggerEvent.bind(this)(handlerInfos, ignoreFailure, args);
       },
@@ -632,16 +651,6 @@ const EmberRouter = EmberObject.extend(Evented, {
   _setupRouter(location) {
     let lastURL;
     let routerMicrolib = this._routerMicrolib;
-
-    let doUpdateURL = () => {
-      location.setURL(lastURL);
-      set(this, 'currentURL', lastURL);
-    };
-
-    routerMicrolib.updateURL = path => {
-      lastURL = path;
-      once(doUpdateURL);
-    };
 
     if (location.replaceURL) {
       let doReplaceURL = () => {
